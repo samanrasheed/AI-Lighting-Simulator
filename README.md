@@ -1,125 +1,150 @@
 # AI Lighting Simulator
 
-A Flask-based backend API for an AI Lighting Simulator that provides lighting recommendations based on room type, room size, interior style, and user preferences.
-
 ## Project Overview
 
-The AI Lighting Simulator is designed to recommend suitable lighting configurations for different room environments.
+AI Lighting Simulator is a Flask-based backend API designed to simulate lighting recommendations for different room types.
 
-The assigned backend task includes:
+The system analyzes room information such as room type, room size, interior style, and lighting preferences to recommend suitable:
 
-- Lighting simulation recommendations
-- Recommended brightness/lumens
-- Color temperature recommendations
-- Suitable lighting fixture types
-- Suggested fixture placement
-- Estimated lighting cost
+- Brightness / lumens
+- Color temperature
+- Lighting fixture types
+- Fixture placement
+- Style-based lighting recommendations
 
-The project is being developed as a REST API using Python and Flask.
+The project is being developed as part of an AI-powered lighting simulation system.
 
-## Current Project Status
+---
 
-### Completed
+## Current Features
 
-- Project structure created
-- Python virtual environment configured
-- Flask and required backend dependencies installed
-- Request validation implemented
-- Standard success and error response structure implemented
-- Application logging configured
-- Lighting recommendation prompt service created
-- Git repository initialized
+### 1. Room-Based Lighting Recommendations
 
-### In Progress
+The system provides different lighting recommendations based on the selected room.
 
-- Flask API endpoint implementation
-- Local API testing with Postman
-- AI service integration
+Supported room types include:
 
-### Planned
+- Bedroom
+- Living Room
+- Kitchen
+- Bathroom
+- Dining Room
+- Office
 
-- Connect the AI service
-- Add environment variable/API key configuration
-- Test AI-generated lighting recommendations
-- Add fallback handling for AI service failures
-- Push daily development updates to GitHub
-- Deploy the API when the implementation is complete
+### 2. Brightness Recommendation
 
-## API Endpoint
+Recommended brightness is calculated according to room type and room size.
 
-The project documentation specifies the following endpoint:
+Different rooms use different lumen-per-square-foot values.
+
+For example:
+
+- Bedroom → 15 lumens per square foot
+- Living Room → 20 lumens per square foot
+- Kitchen → 35 lumens per square foot
+- Bathroom → 30 lumens per square foot
+- Dining Room → 20 lumens per square foot
+- Office → 30 lumens per square foot
+
+### 3. Color Temperature Recommendation
+
+The system adjusts the recommended color temperature based on user preferences.
+
+Examples:
+
+- Warm → 2700K Warm White
+- Cool → 4000K Cool White
+- Daylight → 5000K Daylight
+
+### 4. Fixture Recommendations
+
+The system recommends suitable fixture types depending on the room.
+
+Examples include:
+
+- Ceiling lights
+- Floor lamps
+- Wall sconces
+- Pendant lights
+- Chandeliers
+- Under-cabinet lights
+- Desk lamps
+- Task lighting
+
+### 5. Placement Recommendations
+
+The system also provides suggested locations for lighting fixtures.
+
+For example:
+
+- Bedroom → Center ceiling and beside the bed
+- Living room → Center ceiling and seating areas
+- Kitchen → Ceiling, work areas, and under cabinets
+- Bathroom → Ceiling and vanity area
+- Office → Ceiling and work desk
+
+### 6. Style Recommendations
+
+Lighting recommendations can also take the room style into consideration.
+
+Supported styles include:
+
+- Modern
+- Minimal
+- Traditional
+- Industrial
+- Luxury
+
+---
+
+## API
+
+### Simulate Lighting
+
+**POST**
 
 ```text
-POST /api/ai/simulate-lighting
+/api/ai/simulate-lighting
 ```
 
-## Request Format
-
-The expected request contains:
+### Request Example
 
 ```json
 {
-  "roomType": "living room",
-  "roomSize": 30,
-  "style": "modern",
-  "preferences": [
-    "warm",
-    "dimmable"
-  ]
+    "roomType": "bedroom",
+    "roomSize": 20,
+    "style": "modern",
+    "preferences": ["warm"]
 }
 ```
 
-### Request Fields
-
-| Field | Description |
-|---|---|
-| `roomType` | Type of room being simulated |
-| `roomSize` | Room size |
-| `style` | Interior style |
-| `preferences` | User lighting preferences |
-
-## Expected Response
-
-The project documentation provides the following response structure:
+### Example Response
 
 ```json
 {
-  "recommendedLumens": 3000,
-  "colorTemperature": "2700K - Warm White",
-  "fixtureTypes": [
-    "Chandelier",
-    "Floor lamp",
-    "Wall sconces"
-  ],
-  "placement": "Center ceiling, corners for ambient",
-  "estimatedCost": 1500
+    "roomType": "bedroom",
+    "roomSize": 20,
+    "style": "modern",
+    "recommendedLumens": 300,
+    "colorTemperature": "2700K - Warm White",
+    "fixtureTypes": [
+        "Ceiling light",
+        "Bedside lamps",
+        "Wall sconces"
+    ],
+    "placement": "Center ceiling and beside the bed",
+    "styleRecommendation": "Use clean and minimal fixtures with simple designs."
 }
 ```
 
-## Validation
+---
 
-The API validates the incoming lighting request before processing it.
-
-Current validation includes:
-
-- Room type is required
-- Room type must be supported
-- Room size is required
-- Room size must be a positive number
-- Interior style is required
-- Interior style must be supported
-- Preferences must be provided as a list
-
-## Project Structure
+## Project Architecture
 
 ```text
-18Aug_2026_Saman_AI_Lighting_Simulator/
+AI Lighting Simulator
 │
 ├── app.py
-├── requirements.txt
-├── .env
-├── .gitignore
-├── README.md
 │
 ├── services/
 │   ├── prompt_service.py
@@ -128,87 +153,183 @@ Current validation includes:
 ├── validators/
 │   └── request_validator.py
 │
-└── utils/
-    ├── response.py
-    └── logger.py
+├── utils/
+│   ├── response.py
+│   └── logger.py
+│
+├── requirements.txt
+├── README.md
+└── .env
 ```
+
+---
+
+## Request Flow
+
+```text
+Client / Postman
+       │
+       ▼
+     app.py
+       │
+       ▼
+Request Validation
+       │
+       ▼
+prompt_service.py
+       │
+       ▼
+ai_service.py
+       │
+       ▼
+Lighting Recommendation
+       │
+       ▼
+JSON Response
+```
+
+---
 
 ## Technologies Used
 
 - Python 3.9.6
 - Flask
 - Flask-CORS
-- Gunicorn
 - REST API
+- JSON
 - Git & GitHub
-- Postman for API testing
+- Postman
 
-## Local Setup
+---
 
-Create a virtual environment:
+## Installation
+
+### 1. Clone the repository
+
+```bash
+git clone <your-github-repository-url>
+```
+
+### 2. Open the project directory
+
+```bash
+cd 18Aug_2026_Saman_AI_Lighting_Simulator
+```
+
+### 3. Create a virtual environment
 
 ```bash
 python3 -m venv venv
 ```
 
-Activate the virtual environment:
+### 4. Activate the virtual environment
+
+For macOS/Linux:
 
 ```bash
 source venv/bin/activate
 ```
 
-Install dependencies:
+### 5. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Development Workflow
-
-The project is being developed incrementally, with daily progress pushed to GitHub.
-
-Typical workflow:
+### 6. Run the application
 
 ```bash
-git status
-git add .
-git commit -m "Describe the work completed"
-git push
+python app.py
 ```
 
-## Current Development Progress
+The API will run locally on:
 
-- Created the AI Lighting Simulator project
-- Created the project directory structure
-- Created Python virtual environment
-- Installed Flask, Flask-CORS, and Gunicorn
-- Created request validation module
-- Created common API response utilities
-- Created application logger
-- Created lighting recommendation prompt service
-- Initialized Git repository
+```text
+http://127.0.0.1:5000
+```
+
+---
 
 ## Testing
 
-The API will be tested locally using Postman after the Flask endpoint is implemented.
+The API can be tested using Postman.
 
-Testing will include:
+Example endpoint:
 
-- Valid lighting requests
-- Missing room information
-- Invalid room types
-- Invalid room sizes
-- Invalid styles
-- Invalid preference formats
-- Successful lighting recommendations
-- AI service fallback handling
+```text
+POST http://127.0.0.1:5000/api/ai/simulate-lighting
+```
 
-## Deployment
+Select:
 
-Deployment will be completed after the API and AI integration have been tested successfully.
+```text
+Body → raw → JSON
+```
 
-The final deployed API URL will be added to this README once deployment is completed.
+Then provide:
 
-## Project Goal
+```json
+{
+    "roomType": "kitchen",
+    "roomSize": 30,
+    "style": "minimal",
+    "preferences": ["cool"]
+}
+```
 
-The goal of the AI Lighting Simulator backend is to provide lighting recommendations based on room characteristics and user preferences, including brightness, color temperature, fixture types, placement, and estimated cost.
+Click **Send** to test the API.
+
+---
+
+## Current Development Status
+
+### Completed
+
+- Flask API setup
+- CORS configuration
+- Request validation
+- Response handling
+- Logging setup
+- Prompt service structure
+- Lighting recommendation service
+- Room-based lumen calculation
+- Color temperature recommendations
+- Fixture recommendations
+- Lighting placement recommendations
+- Style-based recommendations
+- Local API testing with Postman
+
+### In Progress
+
+- AI-powered recommendation integration
+- Advanced lighting simulation
+- Dynamic AI-generated recommendations
+- Production deployment
+
+---
+
+## Future Improvements
+
+The project can be extended with:
+
+- AI-generated lighting recommendations
+- More room types
+- More interior styles
+- Advanced brightness calculations
+- Dynamic color-temperature recommendations
+- Multiple lighting layers such as ambient, task, and accent lighting
+- Energy-efficient lighting suggestions
+- Cost estimation
+- Real-time lighting simulation
+- Frontend integration
+- Production deployment
+
+---
+
+## Development
+
+This project is being developed incrementally, with features tested locally using Flask and Postman before deployment.
+
+## License
+
+This project is developed for internship/project purposes.
