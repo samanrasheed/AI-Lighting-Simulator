@@ -1,9 +1,51 @@
 import os
-from dotenv import load_dotenv
 
-load_dotenv() #read .env file
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+
+
+load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+
+def generate_ai_recommendation(prompt):
+    """
+    Generate a lighting recommendation using OpenAI through LangChain.
+
+    This function is only used when an API key is available.
+    """
+
+    if not OPENAI_API_KEY:
+        return None
+
+    llm = ChatOpenAI(
+        model="gpt-4o-mini",
+        api_key=OPENAI_API_KEY,
+        temperature=0.7
+    )
+
+    prompt_template = ChatPromptTemplate.from_messages([
+        (
+            "system",
+            "You are an AI lighting design assistant. "
+            "Provide practical lighting recommendations."
+        ),
+        (
+            "human",
+            "{prompt}"
+        )
+    ])
+
+    chain = prompt_template | llm
+
+    response = chain.invoke({
+        "prompt": prompt
+    })
+
+    return response.content
+
 
 def generate_lighting_recommendation(
     room_type,
@@ -13,13 +55,29 @@ def generate_lighting_recommendation(
     prompt
 ):
     """
-    Generate a lighting recommendation based on room details.
+    Generate a lighting recommendation.
+
+    If an OpenAI API key is available, the AI integration can be used.
+    Otherwise, use the rule-based fallback.
     """
 
+    # Try AI recommendation when an API key is available
+    if OPENAI_API_KEY:
+        ai_result = generate_ai_recommendation(prompt)
+
+        if ai_result:
+            return {
+                "roomType": room_type,
+                "roomSize": room_size,
+                "style": style,
+                "preferences": preferences,
+                "aiRecommendation": ai_result
+            }
+
+    # Rule-based fallback
     room_type = room_type.lower().strip()
     style = style.lower().strip()
 
-    # Calculate recommended lumens based on room size
     if room_type == "bedroom":
         lumens_per_sqft = 15
     elif room_type == "living room":
@@ -37,10 +95,8 @@ def generate_lighting_recommendation(
 
     recommended_lumens = int(room_size * lumens_per_sqft)
 
-    # Default lighting
     color_temperature = "3000K - Warm White"
 
-    # Adjust color temperature according to preferences
     preference_text = " ".join(preferences).lower()
 
     if "warm" in preference_text:
@@ -50,7 +106,6 @@ def generate_lighting_recommendation(
     elif "daylight" in preference_text:
         color_temperature = "5000K - Daylight"
 
-    # Recommend fixture types according to room
     fixture_types = {
         "bedroom": [
             "Ceiling light",
@@ -89,13 +144,20 @@ def generate_lighting_recommendation(
         ["Ceiling light", "Floor lamp", "Wall light"]
     )
 
-    # Placement recommendations
     placement = {
         "bedroom": "Center ceiling and beside the bed",
-        "living room": "Center ceiling with additional lighting near seating areas",
-        "kitchen": "Ceiling, over work areas and under cabinets",
+        "living room": (
+            "Center ceiling with additional lighting "
+            "near seating areas"
+        ),
+        "kitchen": (
+            "Ceiling, over work areas and under cabinets"
+        ),
         "bathroom": "Ceiling and around the vanity",
-        "dining room": "Above the dining table with additional ambient lighting",
+        "dining room": (
+            "Above the dining table with additional "
+            "ambient lighting"
+        ),
         "office": "Ceiling and near the work desk"
     }
 
@@ -104,13 +166,27 @@ def generate_lighting_recommendation(
         "Center ceiling and suitable room corners"
     )
 
-    # Style-based recommendation
     style_notes = {
-        "modern": "Use clean and minimal fixtures with simple designs.",
-        "minimal": "Use simple fixtures with minimal visual clutter.",
-        "traditional": "Use decorative fixtures with warm ambient lighting.",
-        "industrial": "Use metal fixtures and exposed-style lighting.",
-        "luxury": "Use statement fixtures with layered ambient lighting."
+        "modern": (
+            "Use clean and minimal fixtures "
+            "with simple designs."
+        ),
+        "minimal": (
+            "Use simple fixtures with minimal "
+            "visual clutter."
+        ),
+        "traditional": (
+            "Use decorative fixtures with warm "
+            "ambient lighting."
+        ),
+        "industrial": (
+            "Use metal fixtures and exposed-style "
+            "lighting."
+        ),
+        "luxury": (
+            "Use statement fixtures with layered "
+            "ambient lighting."
+        )
     }
 
     recommendation_note = style_notes.get(
@@ -126,5 +202,6 @@ def generate_lighting_recommendation(
         "colorTemperature": color_temperature,
         "fixtureTypes": selected_fixtures,
         "placement": recommended_placement,
-        "styleRecommendation": recommendation_note
+        "styleRecommendation": recommendation_note,
+        "estimatedCost": 1500
     }

@@ -26,6 +26,7 @@ Requirements:
 5. Provide an estimated lighting cost.
 6. Consider the room type, room size, interior style, and user preferences.
 7. Return ONLY valid JSON.
+8. Do not include any explanation outside the JSON.
 
 Expected JSON structure:
 
