@@ -10,44 +10,7 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 
-def generate_ai_recommendation(prompt):
-    """
-    Generate a lighting recommendation using OpenAI through LangChain.
-
-    This function is only used when an API key is available.
-    """
-
-    if not OPENAI_API_KEY:
-        return None
-
-    llm = ChatOpenAI(
-        model="gpt-4o-mini",
-        api_key=OPENAI_API_KEY,
-        temperature=0.7
-    )
-
-    prompt_template = ChatPromptTemplate.from_messages([
-        (
-            "system",
-            "You are an AI lighting design assistant. "
-            "Provide practical lighting recommendations."
-        ),
-        (
-            "human",
-            "{prompt}"
-        )
-    ])
-
-    chain = prompt_template | llm
-
-    response = chain.invoke({
-        "prompt": prompt
-    })
-
-    return response.content
-
-
-def generate_lighting_recommendation(
+def generate_ai_recommendation(
     room_type,
     room_size,
     style,
@@ -57,44 +20,104 @@ def generate_lighting_recommendation(
     """
     Generate a lighting recommendation.
 
-    If an OpenAI API key is available, the AI integration can be used.
+    If an OpenAI API key is available, use LangChain/OpenAI.
     Otherwise, use the rule-based fallback.
     """
 
-    # Try AI recommendation when an API key is available
+    # AI recommendation
     if OPENAI_API_KEY:
-        ai_result = generate_ai_recommendation(prompt)
 
-        if ai_result:
-            return {
-                "roomType": room_type,
-                "roomSize": room_size,
-                "style": style,
-                "preferences": preferences,
-                "aiRecommendation": ai_result
-            }
+        llm = ChatOpenAI(
+            model="gpt-4o-mini",
+            api_key=OPENAI_API_KEY,
+            temperature=0.7
+        )
 
-    # Rule-based fallback
+        prompt_template = ChatPromptTemplate.from_messages([
+            (
+                "system",
+                """
+You are an expert interior lighting designer.
+
+Return ONLY valid JSON.
+
+The JSON must contain exactly these fields:
+
+{
+    "recommendedLumens": 0,
+    "colorTemperature": "",
+    "fixtureTypes": [],
+    "placement": "",
+    "estimatedCost": 0
+}
+
+Do not include markdown.
+Do not include explanations outside the JSON.
+"""
+            ),
+            (
+                "human",
+                "{prompt}"
+            )
+        ])
+
+        chain = prompt_template | llm
+
+        response = chain.invoke({
+            "prompt": prompt
+        })
+
+        return response.content
+
+    # ------------------------------------------------
+    # Rule-based fallback when API key is unavailable
+    # ------------------------------------------------
+
     room_type = room_type.lower().strip()
     style = style.lower().strip()
 
-    if room_type == "bedroom":
-        lumens_per_sqft = 15
-    elif room_type == "living room":
-        lumens_per_sqft = 20
-    elif room_type == "kitchen":
-        lumens_per_sqft = 35
-    elif room_type == "bathroom":
-        lumens_per_sqft = 30
-    elif room_type == "dining room":
-        lumens_per_sqft = 20
-    elif room_type == "office":
-        lumens_per_sqft = 30
-    else:
-        lumens_per_sqft = 20
+       # Brightness calculation
+    room_lighting = {
+        "bedroom": {
+           "lumens_per_sqft": 15,
+           "fixtures": 3
+    },
+        "living room": {
+         "lumens_per_sqft": 20,
+         "fixtures": 4
+    },
+      "kitchen": {
+        "lumens_per_sqft": 35,
+        "fixtures": 5
+    },
+     "bathroom": {
+        "lumens_per_sqft": 30,
+        "fixtures": 3
+    },
+     "dining room": {
+        "lumens_per_sqft": 20,
+        "fixtures": 3
+    },
+     "office": {
+        "lumens_per_sqft": 30,
+        "fixtures": 4
+    }
+}
 
-    recommended_lumens = int(room_size * lumens_per_sqft)
+    lighting_info = room_lighting.get(
+    room_type,
+    {
+        "lumens_per_sqft": 20,
+        "fixtures": 3
+    }
+)
 
+    recommended_lumens = int(
+        room_size * lighting_info["lumens_per_sqft"]
+)
+
+    recommended_fixture_count = lighting_info["fixtures"]
+    # Color temperature
     color_temperature = "3000K - Warm White"
 
     preference_text = " ".join(preferences).lower()
@@ -106,6 +129,7 @@ def generate_lighting_recommendation(
     elif "daylight" in preference_text:
         color_temperature = "5000K - Daylight"
 
+    # Fixture recommendations
     fixture_types = {
         "bedroom": [
             "Ceiling light",
@@ -141,9 +165,14 @@ def generate_lighting_recommendation(
 
     selected_fixtures = fixture_types.get(
         room_type,
-        ["Ceiling light", "Floor lamp", "Wall light"]
+        [
+            "Ceiling light",
+            "Floor lamp",
+            "Wall light"
+        ]
     )
 
+    # Placement recommendations
     placement = {
         "bedroom": "Center ceiling and beside the bed",
         "living room": (
@@ -166,6 +195,7 @@ def generate_lighting_recommendation(
         "Center ceiling and suitable room corners"
     )
 
+    # Style recommendations
     style_notes = {
         "modern": (
             "Use clean and minimal fixtures "
@@ -194,14 +224,18 @@ def generate_lighting_recommendation(
         "Choose fixtures that complement the room style."
     )
 
+    # Estimated cost
+    estimated_cost = 1500
+
     return {
         "roomType": room_type,
         "roomSize": room_size,
         "style": style,
+        "recommendedFixtureCount": recommended_fixture_count,
         "recommendedLumens": recommended_lumens,
         "colorTemperature": color_temperature,
         "fixtureTypes": selected_fixtures,
         "placement": recommended_placement,
         "styleRecommendation": recommendation_note,
-        "estimatedCost": 1500
+        "estimatedCost": estimated_cost
     }
