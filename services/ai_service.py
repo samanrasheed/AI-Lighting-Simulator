@@ -224,8 +224,25 @@ Do not include explanations outside the JSON.
         "Choose fixtures that complement the room style."
     )
 
-    # Estimated cost
-    estimated_cost = 1500
+    # Estimated cost based on fixture types
+    fixture_costs = {
+        "Ceiling light": 500,
+         "Bedside lamps": 300,
+        "Wall sconces": 400,
+        "Floor lamp": 600,
+         "Pendant lights": 700,
+         "Under-cabinet lights": 350,
+         "Vanity lights": 450,
+         "Chandelier": 1200,
+        "Desk lamp": 300,
+         "Task lighting": 500,
+         "Wall light": 400
+}
+
+    estimated_cost = sum(
+        fixture_costs.get(fixture, 400)
+        for fixture in selected_fixtures
+)
 
     return {
         "roomType": room_type,
