@@ -1,4 +1,5 @@
 import os
+import json
 
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
@@ -20,11 +21,14 @@ def generate_ai_recommendation(
     """
     Generate a lighting recommendation.
 
-    If an OpenAI API key is available, use LangChain/OpenAI.
-    Otherwise, use the rule-based fallback.
+    Uses OpenAI through LangChain when an API key is available.
+    Otherwise, uses a rule-based fallback.
     """
 
-    # AI recommendation
+    # ------------------------------------------------
+    # OpenAI + LangChain
+    # ------------------------------------------------
+
     if OPENAI_API_KEY:
 
         llm = ChatOpenAI(
@@ -41,14 +45,13 @@ You are an expert interior lighting designer.
 
 Return ONLY valid JSON.
 
-The JSON must contain exactly these fields:
+Use exactly this structure:
 
 {
     "recommendedLumens": 0,
     "colorTemperature": "",
     "fixtureTypes": [],
-    "placement": "",
-    "estimatedCost": 0
+    "placement": ""
 }
 
 Do not include markdown.
@@ -67,65 +70,53 @@ Do not include explanations outside the JSON.
             "prompt": prompt
         })
 
-        return response.content
+        try:
+            return json.loads(response.content)
+
+        except json.JSONDecodeError:
+            raise ValueError(
+                "AI returned an invalid JSON response."
+            )
 
     # ------------------------------------------------
-    # Rule-based fallback when API key is unavailable
+    # Rule-based fallback
     # ------------------------------------------------
 
     room_type = room_type.lower().strip()
     style = style.lower().strip()
 
-       # Brightness calculation
+    # Brightness recommendation
     room_lighting = {
-        "bedroom": {
-           "lumens_per_sqft": 15,
-           "fixtures": 3
-    },
-        "living room": {
-         "lumens_per_sqft": 20,
-         "fixtures": 4
-    },
-      "kitchen": {
-        "lumens_per_sqft": 35,
-        "fixtures": 5
-    },
-     "bathroom": {
-        "lumens_per_sqft": 30,
-        "fixtures": 3
-    },
-     "dining room": {
-        "lumens_per_sqft": 20,
-        "fixtures": 3
-    },
-     "office": {
-        "lumens_per_sqft": 30,
-        "fixtures": 4
+        "bedroom": 15,
+        "living room": 20,
+        "kitchen": 35,
+        "bathroom": 30,
+        "dining room": 20,
+        "office": 30
     }
-}
 
-    lighting_info = room_lighting.get(
-    room_type,
-    {
-        "lumens_per_sqft": 20,
-        "fixtures": 3
-    }
-)
+    lumens_per_sqft = room_lighting.get(
+        room_type,
+        20
+    )
 
     recommended_lumens = int(
-        room_size * lighting_info["lumens_per_sqft"]
-)
+        room_size * lumens_per_sqft
+    )
 
-    recommended_fixture_count = lighting_info["fixtures"]
-    # Color temperature
+    # Color temperature recommendation
     color_temperature = "3000K - Warm White"
 
-    preference_text = " ".join(preferences).lower()
+    preference_text = " ".join(
+        preferences
+    ).lower()
 
     if "warm" in preference_text:
         color_temperature = "2700K - Warm White"
+
     elif "cool" in preference_text:
         color_temperature = "4000K - Cool White"
+
     elif "daylight" in preference_text:
         color_temperature = "5000K - Daylight"
 
@@ -136,26 +127,31 @@ Do not include explanations outside the JSON.
             "Bedside lamps",
             "Wall sconces"
         ],
+
         "living room": [
             "Ceiling light",
             "Floor lamp",
             "Wall sconces"
         ],
+
         "kitchen": [
             "Ceiling light",
             "Pendant lights",
             "Under-cabinet lights"
         ],
+
         "bathroom": [
             "Ceiling light",
             "Vanity lights",
             "Wall sconces"
         ],
+
         "dining room": [
             "Pendant light",
             "Chandelier",
             "Wall sconces"
         ],
+
         "office": [
             "Ceiling light",
             "Desk lamp",
@@ -174,85 +170,33 @@ Do not include explanations outside the JSON.
 
     # Placement recommendations
     placement = {
-        "bedroom": "Center ceiling and beside the bed",
-        "living room": (
-            "Center ceiling with additional lighting "
-            "near seating areas"
-        ),
-        "kitchen": (
-            "Ceiling, over work areas and under cabinets"
-        ),
-        "bathroom": "Ceiling and around the vanity",
-        "dining room": (
-            "Above the dining table with additional "
-            "ambient lighting"
-        ),
-        "office": "Ceiling and near the work desk"
+        "bedroom":
+            "Center ceiling and beside the bed",
+
+        "living room":
+            "Center ceiling with additional lighting near seating areas",
+
+        "kitchen":
+            "Ceiling, over work areas and under cabinets",
+
+        "bathroom":
+            "Ceiling and around the vanity",
+
+        "dining room":
+            "Above the dining table with additional ambient lighting",
+
+        "office":
+            "Ceiling and near the work desk"
     }
 
     recommended_placement = placement.get(
         room_type,
-        "Center ceiling and suitable room corners"
+        "Center ceiling and suitable room areas"
     )
-
-    # Style recommendations
-    style_notes = {
-        "modern": (
-            "Use clean and minimal fixtures "
-            "with simple designs."
-        ),
-        "minimal": (
-            "Use simple fixtures with minimal "
-            "visual clutter."
-        ),
-        "traditional": (
-            "Use decorative fixtures with warm "
-            "ambient lighting."
-        ),
-        "industrial": (
-            "Use metal fixtures and exposed-style "
-            "lighting."
-        ),
-        "luxury": (
-            "Use statement fixtures with layered "
-            "ambient lighting."
-        )
-    }
-
-    recommendation_note = style_notes.get(
-        style,
-        "Choose fixtures that complement the room style."
-    )
-
-    # Estimated cost based on fixture types
-    fixture_costs = {
-        "Ceiling light": 500,
-         "Bedside lamps": 300,
-        "Wall sconces": 400,
-        "Floor lamp": 600,
-         "Pendant lights": 700,
-         "Under-cabinet lights": 350,
-         "Vanity lights": 450,
-         "Chandelier": 1200,
-        "Desk lamp": 300,
-         "Task lighting": 500,
-         "Wall light": 400
-}
-
-    estimated_cost = sum(
-        fixture_costs.get(fixture, 400)
-        for fixture in selected_fixtures
-)
 
     return {
-        "roomType": room_type,
-        "roomSize": room_size,
-        "style": style,
-        "recommendedFixtureCount": recommended_fixture_count,
         "recommendedLumens": recommended_lumens,
         "colorTemperature": color_temperature,
         "fixtureTypes": selected_fixtures,
-        "placement": recommended_placement,
-        "styleRecommendation": recommendation_note,
-        "estimatedCost": estimated_cost
+        "placement": recommended_placement
     }
