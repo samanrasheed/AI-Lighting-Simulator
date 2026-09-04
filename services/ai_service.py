@@ -86,23 +86,13 @@ Do not include explanations outside the JSON.
     style = style.lower().strip()
 
     # Brightness recommendation
-    room_lighting = {
-        "bedroom": 15,
-        "living room": 20,
-        "kitchen": 35,
-        "bathroom": 30,
-        "dining room": 20,
-        "office": 30
-    }
+    # 30 square meters -> 3000 lumens
 
-    lumens_per_sqft = room_lighting.get(
-        room_type,
-        20
-    )
+    lumens_per_square_meter = 100
 
     recommended_lumens = int(
-        room_size * lumens_per_sqft
-    )
+        room_size * lumens_per_square_meter
+)
 
     # Color temperature recommendation
     color_temperature = "3000K - Warm White"
@@ -129,7 +119,7 @@ Do not include explanations outside the JSON.
         ],
 
         "living room": [
-            "Ceiling light",
+            "Chandelier",
             "Floor lamp",
             "Wall sconces"
         ],
@@ -174,7 +164,7 @@ Do not include explanations outside the JSON.
             "Center ceiling and beside the bed",
 
         "living room":
-            "Center ceiling with additional lighting near seating areas",
+            "Center ceiling, corners for ambient",
 
         "kitchen":
             "Ceiling, over work areas and under cabinets",
@@ -193,10 +183,11 @@ Do not include explanations outside the JSON.
         room_type,
         "Center ceiling and suitable room areas"
     )
-
+    estimated_cost = 1500
     return {
         "recommendedLumens": recommended_lumens,
         "colorTemperature": color_temperature,
         "fixtureTypes": selected_fixtures,
-        "placement": recommended_placement
+        "placement": recommended_placement,
+        "estimatedCost": estimated_cost
     }

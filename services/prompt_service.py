@@ -23,9 +23,10 @@ Requirements:
 2. Recommend a suitable color temperature.
 3. Recommend suitable lighting fixture types.
 4. Suggest suitable placement for the lighting fixtures.
-5. Consider the room type, room size, interior style, and user preferences.
-6. Return ONLY valid JSON.
-7. Do not include any explanation outside the JSON.
+5. Provide an estimated lighting cost.
+6. Consider the room type, room size, interior style, and user preferences.
+7. Return ONLY valid JSON.
+8. Do not include any explanation outside the JSON.
 
 Expected JSON structure:
 
@@ -33,7 +34,8 @@ Expected JSON structure:
     "recommendedLumens": 0,
     "colorTemperature": "",
     "fixtureTypes": [],
-    "placement": ""
+    "placement": "",
+    "estimatedCost": 0
 }}
 """
 
